@@ -6,7 +6,7 @@ namespace ChatClient
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var client = new Client("127.0.0.1", "12345");
         }
     }
 }

@@ -16,8 +16,7 @@ namespace ChatClient
         public Client(string serverIP, int port, string name = "Anonymous")
         {   
             //Resolve the connection information
-            IPHostEntry ipHost = Dns.GetHostEntry(serverIP);
-            IPAddress ip = ipHost.AddressList[0];
+            IPAddress ip = IPAddress.Parse(serverIP);
             IPEndPoint endPoint = new IPEndPoint(ip, port);
             this.Name = name;
 

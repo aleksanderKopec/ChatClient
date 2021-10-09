@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
@@ -13,12 +11,12 @@ namespace ChatClient
         private string Name { get; set; }
 
         private Socket connection { get; set; }
-        public Client(string serverIP, int port, string name = "Anonymous")
+        public Client(string serverIP, int port)
         {   
             //Resolve the connection information
             IPAddress ip = IPAddress.Parse(serverIP);
             IPEndPoint endPoint = new IPEndPoint(ip, port);
-            this.Name = name;
+            askForName();
 
             //Connect to server and start communication
             connectToServer(ip);
@@ -26,6 +24,13 @@ namespace ChatClient
 
         }
 
+        private void askForName()
+        {
+            Console.Write("Enter your client name: ");
+            string name = Console.ReadLine();
+            this.Name = name;
+            Console.WriteLine($"Client name has been set to: {Name}");
+        }
         private void connectToServer(IPAddress serverIP)
         {
             try
@@ -54,14 +59,21 @@ namespace ChatClient
                 //Sending messages
                 while (true)
                 {
-                    //Console.Write($"{this.Name}: ");
                     string decodedMessage = Console.ReadLine();
                     ClearLine();
-                    //Console.Write($"\n");
 
-                    byte[] encodedMessage = Encoding.ASCII.GetBytes(decodedMessage);
-                    connection.Send(encodedMessage);
-                    //Console.WriteLine($"{this.Name}: {decodedMessage}");
+                    string jsonedMessage = new Message(this.Name, decodedMessage).toJson();
+
+                    byte[] encodedMessage = Encoding.ASCII.GetBytes(jsonedMessage);
+                    if (encodedMessage.Length > 1024)
+                    {
+                        Console.WriteLine("Message is too long");
+                    }
+                    else
+                    {
+                        connection.Send(encodedMessage);
+                    }
+                    
                 }
             }
             catch (SocketException se)
@@ -89,7 +101,10 @@ namespace ChatClient
                     connection.Receive(encodedMessage);
 
                     string decodedMessage = Encoding.ASCII.GetString(encodedMessage);
-                    Console.WriteLine($"Anonymous: {decodedMessage}");
+                    Message msg = Message.fromJson(decodedMessage);
+
+
+                    Console.WriteLine($"{msg.ClientName}: {msg.Content}");
                 }
             }
             catch (SocketException se)
